@@ -10035,7 +10035,7 @@ describe('api tests', () => {
   });
 
   test('Address events: empty events returned', async () => {
-    const address = 'address-not-found-in-db';
+    const address = 'ST3RJJS96F4GH90XDQQPFQ2023JVFNXPWCSV6BN1Z';
     const addressEvents = await supertest(api.server).get(
       `/extended/v1/tx/events?address=${address}`
     );
@@ -10050,7 +10050,7 @@ describe('api tests', () => {
   });
 
   test('Address events: no filter applied', async () => {
-    const address = 'address with no filter applied';
+    const address = 'ST3RJJS96F4GH90XDQQPFQ2023JVFNXPWCSV6BN1Z';
     const block = new TestBlockBuilder({ block_height: 1, index_block_hash: '0x01' })
       .addTx({
         tx_id: '0x1234',
@@ -10067,177 +10067,6 @@ describe('api tests', () => {
       `/extended/v1/tx/events?address=${address}`
     );
 
-    const expectedResponse = {
-      limit: 96,
-      offset: 0,
-      events: [
-        {
-          event_index: 4,
-          event_type: 'stx_lock',
-          tx_id: '0x1234',
-          stx_lock_event: {
-            locked_amount: '10000',
-            unlock_height: 100,
-            locked_address: 'address with no filter applied',
-          },
-        },
-        {
-          event_index: 3,
-          event_type: 'fungible_token_asset',
-          tx_id: '0x1234',
-          asset: {
-            asset_event_type: 'transfer',
-            asset_id: 'test_ft_asset_id',
-            sender: 'address with no filter applied',
-            recipient: '',
-            amount: '50',
-          },
-        },
-        {
-          event_index: 2,
-          event_type: 'non_fungible_token_asset',
-          tx_id: '0x1234',
-          asset: {
-            asset_event_type: 'transfer',
-            asset_id: 'test_asset_id',
-            sender: 'address with no filter applied',
-            recipient: '',
-            value: { hex: '0x020000000103', repr: '0x03' },
-          },
-        },
-        {
-          event_index: 1,
-          event_type: 'smart_contract_log',
-          tx_id: '0x1234',
-          contract_log: {
-            contract_id: 'address with no filter applied',
-            topic: 'some-topic',
-            value: { hex: '0x0200000008736f6d652076616c', repr: '0x736f6d652076616c' },
-          },
-        },
-        {
-          event_index: 0,
-          event_type: 'stx_asset',
-          tx_id: '0x1234',
-          asset: {
-            asset_event_type: 'transfer',
-            sender: 'address with no filter applied',
-            recipient: 'STB44HYPYAT2BB2QE513NSP81HTMYWBJP02HPGK6',
-            amount: '100',
-          },
-        },
-      ],
-    };
-
-    expect(addressEvents.status).toBe(200);
-    expect(addressEvents.body).toEqual(expectedResponse);
-  });
-
-  test('Address events: limit and offset', async () => {
-    const address = 'address with no filter applied';
-    const block = new TestBlockBuilder({ block_height: 1, index_block_hash: '0x01' })
-      .addTx({
-        tx_id: '0x1234',
-      })
-      .addTxStxEvent({ amount: 100n, sender: address })
-      .addTxContractLogEvent({ contract_identifier: address })
-      .addTxNftEvent({ asset_identifier: 'test_asset_id', sender: address })
-      .addTxFtEvent({ sender: address, asset_identifier: 'test_ft_asset_id', amount: 50n })
-      .addTxStxLockEvent({ unlock_height: 100, locked_amount: 10000, locked_address: address })
-      .build();
-
-    await db.update(block);
-    const addressEvents = await supertest(api.server).get(
-      `/extended/v1/tx/events?address=${address}&limit=2`
-    );
-
-    const expectedResponse = {
-      limit: 2,
-      offset: 0,
-      events: [
-        {
-          event_index: 4,
-          event_type: 'stx_lock',
-          tx_id: '0x1234',
-          stx_lock_event: {
-            locked_amount: '10000',
-            unlock_height: 100,
-            locked_address: 'address with no filter applied',
-          },
-        },
-        {
-          event_index: 3,
-          event_type: 'fungible_token_asset',
-          tx_id: '0x1234',
-          asset: {
-            asset_event_type: 'transfer',
-            asset_id: 'test_ft_asset_id',
-            sender: 'address with no filter applied',
-            recipient: '',
-            amount: '50',
-          },
-        },
-      ],
-    };
-
-    expect(addressEvents.status).toBe(200);
-    expect(addressEvents.body).toEqual(expectedResponse);
-
-    const addressEvents2 = await supertest(api.server).get(
-      `/extended/v1/tx/events?address=${address}&limit=2&offset=2`
-    );
-
-    const expectedResponse2 = {
-      limit: 2,
-      offset: 2,
-      events: [
-        {
-          event_index: 2,
-          event_type: 'non_fungible_token_asset',
-          tx_id: '0x1234',
-          asset: {
-            asset_event_type: 'transfer',
-            asset_id: 'test_asset_id',
-            sender: 'address with no filter applied',
-            recipient: '',
-            value: { hex: '0x020000000103', repr: '0x03' },
-          },
-        },
-        {
-          event_index: 1,
-          event_type: 'smart_contract_log',
-          tx_id: '0x1234',
-          contract_log: {
-            contract_id: 'address with no filter applied',
-            topic: 'some-topic',
-            value: { hex: '0x0200000008736f6d652076616c', repr: '0x736f6d652076616c' },
-          },
-        },
-      ],
-    };
-
-    expect(addressEvents2.status).toBe(200);
-    expect(addressEvents2.body).toEqual(expectedResponse2);
-  });
-
-  test('Tx events', async () => {
-    const address = 'ST3RJJS96F4GH90XDQQPFQ2023JVFNXPWCSV6BN1Z';
-    const txId = '0x1234';
-    const block = new TestBlockBuilder({ block_height: 1, index_block_hash: '0x01' })
-      .addTx({
-        tx_id: txId,
-      })
-      .addTxStxEvent({ amount: 100n, sender: address })
-      .addTxContractLogEvent({ contract_identifier: address })
-      .addTxNftEvent({ asset_identifier: 'test_asset_id', sender: address })
-      .addTxFtEvent({ sender: address, asset_identifier: 'test_ft_asset_id', amount: 50n })
-      .addTxStxLockEvent({ unlock_height: 100, locked_amount: 10000, locked_address: address })
-      .build();
-
-    await db.update(block);
-    const addressEvents = await supertest(api.server).get(
-      `/extended/v1/tx/events?tx_id=${txId}&type=stx_asset&type=smart_contract_log&type=non_fungible_token_asset&type=fungible_token_asset&type=stx_lock`
-    );
     const expectedResponse = {
       limit: 96,
       offset: 0,
@@ -10304,6 +10133,186 @@ describe('api tests', () => {
     expect(addressEvents.body).toEqual(expectedResponse);
   });
 
+  test('Address events: limit and offset', async () => {
+    const address = 'ST3RJJS96F4GH90XDQQPFQ2023JVFNXPWCSV6BN1Z';
+    const block = new TestBlockBuilder({ block_height: 1, index_block_hash: '0x01' })
+      .addTx({
+        tx_id: '0x1234',
+      })
+      .addTxStxEvent({ amount: 100n, sender: address })
+      .addTxContractLogEvent({ contract_identifier: address })
+      .addTxNftEvent({ asset_identifier: 'test_asset_id', sender: address })
+      .addTxFtEvent({ sender: address, asset_identifier: 'test_ft_asset_id', amount: 50n })
+      .addTxStxLockEvent({ unlock_height: 100, locked_amount: 10000, locked_address: address })
+      .build();
+
+    await db.update(block);
+    const addressEvents = await supertest(api.server).get(
+      `/extended/v1/tx/events?address=${address}&limit=2`
+    );
+
+    const expectedResponse = {
+      limit: 2,
+      offset: 0,
+      events: [
+        {
+          event_index: 4,
+          event_type: 'stx_lock',
+          tx_id: '0x1234',
+          stx_lock_event: {
+            locked_amount: '10000',
+            unlock_height: 100,
+            locked_address: 'ST3RJJS96F4GH90XDQQPFQ2023JVFNXPWCSV6BN1Z',
+          },
+        },
+        {
+          event_index: 3,
+          event_type: 'fungible_token_asset',
+          tx_id: '0x1234',
+          asset: {
+            asset_event_type: 'transfer',
+            asset_id: 'test_ft_asset_id',
+            sender: 'ST3RJJS96F4GH90XDQQPFQ2023JVFNXPWCSV6BN1Z',
+            recipient: '',
+            amount: '50',
+          },
+        },
+      ],
+    };
+
+    expect(addressEvents.status).toBe(200);
+    expect(addressEvents.body).toEqual(expectedResponse);
+
+    const addressEvents2 = await supertest(api.server).get(
+      `/extended/v1/tx/events?address=${address}&limit=2&offset=2`
+    );
+
+    const expectedResponse2 = {
+      limit: 2,
+      offset: 2,
+      events: [
+        {
+          event_index: 2,
+          event_type: 'non_fungible_token_asset',
+          tx_id: '0x1234',
+          asset: {
+            asset_event_type: 'transfer',
+            asset_id: 'test_asset_id',
+            sender: 'ST3RJJS96F4GH90XDQQPFQ2023JVFNXPWCSV6BN1Z',
+            recipient: '',
+            value: { hex: '0x020000000103', repr: '0x03' },
+          },
+        },
+        {
+          event_index: 1,
+          event_type: 'smart_contract_log',
+          tx_id: '0x1234',
+          contract_log: {
+            contract_id: 'ST3RJJS96F4GH90XDQQPFQ2023JVFNXPWCSV6BN1Z',
+            topic: 'some-topic',
+            value: { hex: '0x0200000008736f6d652076616c', repr: '0x736f6d652076616c' },
+          },
+        },
+      ],
+    };
+
+    expect(addressEvents2.status).toBe(200);
+    expect(addressEvents2.body).toEqual(expectedResponse2);
+  });
+
+  test('Address events: invalid address', async () => {
+    const address = 'invalid address';
+    const addressEvents = await supertest(api.server).get(
+      `/extended/v1/tx/events?address=${address}`
+    );
+
+    expect(addressEvents.status).toBe(400);
+  });
+
+  test('Tx events', async () => {
+    const address = 'ST3RJJS96F4GH90XDQQPFQ2023JVFNXPWCSV6BN1Z';
+    const txId = '0x1234';
+    const block = new TestBlockBuilder({ block_height: 1, index_block_hash: '0x01' })
+      .addTx({
+        tx_id: txId,
+      })
+      .addTxStxEvent({ amount: 100n, sender: address })
+      .addTxContractLogEvent({ contract_identifier: address })
+      .addTxNftEvent({ asset_identifier: 'test_asset_id', sender: address })
+      .addTxFtEvent({ sender: address, asset_identifier: 'test_ft_asset_id', amount: 50n })
+      .addTxStxLockEvent({ unlock_height: 100, locked_amount: 10000, locked_address: address })
+      .build();
+
+    await db.update(block);
+    const events = await supertest(api.server).get(
+      `/extended/v1/tx/events?tx_id=${txId}&type=stx_asset&type=smart_contract_log&type=non_fungible_token_asset&type=fungible_token_asset&type=stx_lock`
+    );
+    const expectedResponse = {
+      limit: 96,
+      offset: 0,
+      events: [
+        {
+          event_index: 4,
+          event_type: 'stx_lock',
+          tx_id: '0x1234',
+          stx_lock_event: {
+            locked_amount: '10000',
+            unlock_height: 100,
+            locked_address: 'ST3RJJS96F4GH90XDQQPFQ2023JVFNXPWCSV6BN1Z',
+          },
+        },
+        {
+          event_index: 3,
+          event_type: 'fungible_token_asset',
+          tx_id: '0x1234',
+          asset: {
+            asset_event_type: 'transfer',
+            asset_id: 'test_ft_asset_id',
+            sender: 'ST3RJJS96F4GH90XDQQPFQ2023JVFNXPWCSV6BN1Z',
+            recipient: '',
+            amount: '50',
+          },
+        },
+        {
+          event_index: 2,
+          event_type: 'non_fungible_token_asset',
+          tx_id: '0x1234',
+          asset: {
+            asset_event_type: 'transfer',
+            asset_id: 'test_asset_id',
+            sender: 'ST3RJJS96F4GH90XDQQPFQ2023JVFNXPWCSV6BN1Z',
+            recipient: '',
+            value: { hex: '0x020000000103', repr: '0x03' },
+          },
+        },
+        {
+          event_index: 1,
+          event_type: 'smart_contract_log',
+          tx_id: '0x1234',
+          contract_log: {
+            contract_id: 'ST3RJJS96F4GH90XDQQPFQ2023JVFNXPWCSV6BN1Z',
+            topic: 'some-topic',
+            value: { hex: '0x0200000008736f6d652076616c', repr: '0x736f6d652076616c' },
+          },
+        },
+        {
+          event_index: 0,
+          event_type: 'stx_asset',
+          tx_id: '0x1234',
+          asset: {
+            asset_event_type: 'transfer',
+            sender: 'ST3RJJS96F4GH90XDQQPFQ2023JVFNXPWCSV6BN1Z',
+            recipient: 'STB44HYPYAT2BB2QE513NSP81HTMYWBJP02HPGK6',
+            amount: '100',
+          },
+        },
+      ],
+    };
+
+    expect(events.status).toBe(200);
+    expect(events.body).toEqual(expectedResponse);
+  });
+
   test('Tx events: no filter applied', async () => {
     const address = 'address with no filter applied';
     const txId = '0x1234';
@@ -10319,7 +10328,7 @@ describe('api tests', () => {
       .build();
 
     await db.update(block);
-    const addressEvents = await supertest(api.server).get(`/extended/v1/tx/events?tx_id=${txId}`);
+    const events = await supertest(api.server).get(`/extended/v1/tx/events?tx_id=${txId}`);
     const expectedResponse = {
       limit: 96,
       offset: 0,
@@ -10382,30 +10391,30 @@ describe('api tests', () => {
       ],
     };
 
-    expect(addressEvents.status).toBe(200);
-    expect(addressEvents.body).toEqual(expectedResponse);
+    expect(events.status).toBe(200);
+    expect(events.body).toEqual(expectedResponse);
   });
 
   test('Tx events: empty events returned', async () => {
     const txId = '0x1234';
-    const addressEvents = await supertest(api.server).get(`/extended/v1/tx/events?tx_id=${txId}`);
+    const events = await supertest(api.server).get(`/extended/v1/tx/events?tx_id=${txId}`);
     const expectedResponse = {
       limit: 96,
       offset: 0,
       events: [],
     };
 
-    expect(addressEvents.status).toBe(200);
-    expect(addressEvents.body).toEqual(expectedResponse);
+    expect(events.status).toBe(200);
+    expect(events.body).toEqual(expectedResponse);
   });
 
   test('Tx events: invalid type', async () => {
     const txId = '0x1234';
-    const addressEvents = await supertest(api.server).get(
+    const events = await supertest(api.server).get(
       `/extended/v1/tx/events?tx_id=${txId}&type=invalid`
     );
 
-    expect(addressEvents.status).toBe(400);
+    expect(events.status).toBe(400);
   });
 
   test('Tx events: limit and offset', async () => {
@@ -10423,9 +10432,7 @@ describe('api tests', () => {
       .build();
 
     await db.update(block);
-    const addressEvents = await supertest(api.server).get(
-      `/extended/v1/tx/events?tx_id=${txId}&limit=2`
-    );
+    const events = await supertest(api.server).get(`/extended/v1/tx/events?tx_id=${txId}&limit=2`);
 
     const expectedResponse = {
       limit: 2,
@@ -10456,8 +10463,8 @@ describe('api tests', () => {
       ],
     };
 
-    expect(addressEvents.status).toBe(200);
-    expect(addressEvents.body).toEqual(expectedResponse);
+    expect(events.status).toBe(200);
+    expect(events.body).toEqual(expectedResponse);
 
     const addressEvents2 = await supertest(api.server).get(
       `/extended/v1/tx/events?tx_id=${txId}&limit=2&offset=2`
@@ -10494,6 +10501,12 @@ describe('api tests', () => {
 
     expect(addressEvents2.status).toBe(200);
     expect(addressEvents2.body).toEqual(expectedResponse2);
+  });
+
+  test('Tx events: invalid txId', async () => {
+    const txId = 'invalid id';
+    const events = await supertest(api.server).get(`/extended/v1/tx/events?tx_id=${txId}`);
+    expect(events.status).toBe(400);
   });
 
   test('mutually exclusive query params', async () => {
